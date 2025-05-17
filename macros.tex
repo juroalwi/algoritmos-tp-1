@@ -1,0 +1,172 @@
+
+\usepackage[spanish,activeacute,es-tabla]{babel}   
+\usepackage[utf8]{inputenc}                        
+\usepackage{ifthen}                                
+\usepackage{listings}                              
+\usepackage{dsfont}                                
+\usepackage{subcaption}                            
+\usepackage{amsmath}                               
+\usepackage[strict]{changepage}                    
+\usepackage[top=1cm,bottom=2cm,left=1cm,right=1cm]{geometry}
+\usepackage{color}                                 
+\usepackage{graphicx}                              
+\usepackage{relsize}                               
+\usepackage{exscale}                               
+\usepackage[dvipsnames]{xcolor}                    
+
+% ==================================================================
+\newenvironment{IndentedBlock}{
+  \begin{list}{}{
+    \leftmargin=2em   % sangrado izquierdo
+    \rightmargin=0em
+    \topsep=0pt
+    \partopsep=0pt
+    \parsep=3pt
+    \itemsep=0pt
+  }\item\relax
+}{
+  \end{list}
+}
+
+% ==================================================================
+
+\newcommand{\In}[2]{\textsf{in} #1 : #2}       % in nombre : tipo
+\newcommand{\Out}[2]{\textsf{out} #1 : #2}     % out nombre : tipo
+\newcommand{\Inout}[2]{\textsf{inout} #1 : #2} % inout nombre : tipo
+
+% ==================================================================
+% redefine requiere para mantener indentación y corchetes
+\newcommand{\requiere}[2][]{%
+  \noindent\textbf{\ttfamily requiere}%
+  \ifthenelse{\equal{#1}{}}{}{ {\normalfont\ttfamily #1}}%
+  \ \{% abre corchete
+    \begin{IndentedBlock}
+      \(\begin{aligned}#2\end{aligned}\)
+    \end{IndentedBlock}
+  \}\par\medskip
+}
+
+\newcommand{\asegura}[2][]{%
+  \noindent\textbf{\ttfamily asegura}%
+  \ifthenelse{\equal{#1}{}}{}{ {\normalfont\ttfamily #1}}%
+  \ \{% abre corchete
+    \begin{IndentedBlock}
+      \(\begin{aligned}#2\end{aligned}\)
+    \end{IndentedBlock}
+  \}\par\medskip
+}
+
+
+% ==================================================================
+% 5. Entornos para TAD, predicado, auxiliar y procedimiento
+% ------------------------------------------------------------------
+
+% --- Predicado ---
+\newcommand{\predheader}[2]{%
+  \noindent\textbf{\ttfamily pred}\ {\ttfamily #1}(#2)%
+}
+\newenvironment{pred}[2]{%
+  \predheader{#1}{#2}\{%
+    \begin{IndentedBlock}
+  }{%
+    \end{IndentedBlock}
+  \}\par
+}
+
+% --- Auxiliar ---
+\newcommand{\auxheader}[3]{%
+  \noindent\textbf{\ttfamily aux}\ {\ttfamily #1}(#2)\ :\ {\ttfamily #3}\ =%
+}
+\newenvironment{aux}[3]{%
+  \auxheader{#1}{#2}{#3}%
+  \begin{IndentedBlock}
+}{%
+  \end{IndentedBlock}\par
+}
+
+% --- Procedimiento ---
+\newcommand{\procheader}[3]{%
+  \noindent\textbf{\ttfamily proc}\ {\ttfamily #1}(#2)%
+  \ifthenelse{\equal{#3}{}}{}{ : {\ttfamily #3}}%
+}
+\newenvironment{proc}[3]{%
+  \procheader{#1}{#2}{#3}\{%
+    \begin{IndentedBlock}
+  }{%
+    \end{IndentedBlock}
+  \}\par
+}
+
+% --- TAD ---
+\newcommand{\tadheader}[2]{%
+  \noindent\textbf{\ttfamily TAD}\ {\ttfamily #1}%
+  \ifthenelse{\equal{#2}{}}{}{%
+    {$\langle#2\rangle$}%
+  }%
+}
+\newenvironment{tad}[2]{%
+  \tadheader{#1}{#2}\{%
+    \begin{IndentedBlock}
+  }{%
+    \end{IndentedBlock}
+  \}\par
+}
+
+% ==================================================================
+\newcommand{\tnat}{\ensuremath{\mathds{N}}}
+\newcommand{\tint}{\ensuremath{\mathds{Z}}}
+\newcommand{\treal}{\ensuremath{\mathds{R}}}
+\newcommand{\tbool}{\ensuremath{\mathsf{Bool}}}
+\newcommand{\tfloat}{\ensuremath{\mathsf{Float}}}
+\newcommand{\tchar}{\ensuremath{\mathsf{Char}}}
+\newcommand{\tstring}{\ensuremath{\mathsf{String}}}
+
+\newcommand{\ttuple}[1]{\ensuremath{\mathsf{Tuple}\langle#1\rangle}}
+\newcommand{\tseq}[1]{\ensuremath{\mathsf{Seq}\langle#1\rangle}}
+\newcommand{\tconj}[1]{\ensuremath{\mathsf{Conj}\langle#1\rangle}}
+\newcommand{\tdict}[1]{\ensuremath{\mathsf{Dict}\langle#1\rangle}}
+\newcommand{\tstruct}[1]{\ensuremath{\mathsf{Struct}\langle#1\rangle}}
+
+% ==================================================================
+\newcommand{\comment}[1]{\textcolor{Periwinkle}{// #1}\\}
+\newcommand{\bigsum}[2]{\ensuremath{\sum\limits_{#1}^{#2}}}
+\newcommand{\bigunion}[2]{\ensuremath{\bigcup\limits_{#1}^{#2}}}
+\newcommand{\bbpar}[1]{\bigl(#1\bigr)}
+\newcommand{\bpar}[1]{\Bigl(#1\Bigr)}
+
+\newcommand{\True}{\ensuremath{\mathrm{true}}}
+\newcommand{\False}{\ensuremath{\mathrm{false}}}
+\newcommand{\Then}{\ensuremath{\rightarrow}}
+\newcommand{\Iff}{\ensuremath{\leftrightarrow}}
+\newcommand{\implica}{\ensuremath{\longrightarrow}}
+\newcommand{\IfThenElse}[3]{\ensuremath{\mathsf{if}\ #1\ \mathsf{then}\ #2\ \mathsf{else}\ #3\ \mathsf{fi}}}
+\newcommand{\yLuego}{\land _L}
+\newcommand{\oLuego}{\lor _L}
+\newcommand{\implicaLuego}{\implica _L}
+\newcommand{\IfThenElseFi}[3]{%
+  \ensuremath{\mathsf{if}\ #1\ \mathsf{then}\ #2\ \mathsf{else}\ #3\ \mathsf{fi}}%
+}
+\newcommand{\nsum}[1][1.4]{%
+  \mathop{\raisebox{-#1\depthofsumsign}{\scalebox{#1}{$\displaystyle\sum$}}}%
+}
+
+% ==================================================================
+\newcommand{\alias}[2]{\noindent #1 \textbf{ES}\ #2}  
+\newcommand{\obs}[2]{%
+  \par\noindent\textbf{obs}\ \ensuremath{#1 : #2}\par
+}
+\newcommand{\call}[2]{\ensuremath{\mathrm{#1}(#2)}}
+
+
+% ==================================================================
+\renewcommand{\lstlistingname}{Código} 
+\lstset{
+  language=Java,                    
+  morekeywords={endif,endwhile,skip},
+  basewidth={0.47em,0.40em},
+  columns=fixed,flexiblecolumns=false,
+  tabsize=4,breaklines=true,
+  numbers=left,numberstyle=\tiny,
+  stepnumber=1,numbersep=9pt,
+  frame=l,framesep=3pt,captionpos=b,
+}

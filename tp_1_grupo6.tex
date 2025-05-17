@@ -1,0 +1,492 @@
+\documentclass[10pt,a4paper]{article}
+
+\input{macros}           
+\usepackage{caratula}    
+
+\titulo{Trabajo Práctico 1: especificación de TAD's}
+\subtitulo{Algorítmos y Estructuras de Datos}
+\fecha{\today}
+\materia{Materia de la carrera}
+\grupo{Grupo6}
+
+
+\integrante{Abizanda, Facundo}{1332/21}{facundoabizanda@gmail.com}
+\integrante{Julian, Alvarez}{1944/21}{juroalwi@gmail.com}
+
+\graphicspath{{../static/}}
+
+\begin{document}
+\maketitle
+
+
+
+{\Large \textbf{Especificación de Berretacoin}}
+
+    \medskip
+    \medskip
+    \medskip
+    \medskip
+
+\alias{Transaccion}{%
+    \tstruct{%
+        id\_tr: \tint,\;
+        id\_com: \tint,\;
+        id\_ven: \tint,\;
+        mont: \tint
+        }
+}\\
+
+\alias{Transacciones}{%
+    \tseq{Transaccion
+    }%
+}\\
+
+\alias{Bloque}{%
+    \tstruct{%
+        id\_bl: \tint,\;
+        transacciones: Transacciones
+  }%
+}\\
+
+\alias{Cadena}{%
+    \tseq{Bloque}
+}\\
+
+\begin{tad}{\$Berretacoin}{}
+    % Observadores
+    \obs{cadena}{Cadena}
+    \medskip
+    \medskip
+
+    \begin{pred}{balanceUsuarioPositivoEnCadena}{%
+      id\_usuario : \tint,\quad
+      cadena: Cadena
+    }
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\forall\,i:\mathds{Z})(0 \le i < \lvert cadena\rvert\;\implicaLuego\\
+          &\quad (\forall\,num\_tr:\mathds{Z})(%
+              0 \le num\_tr < \lvert cadena[i].tr\rvert
+              \;\implicaLuego
+            \\[-0.4ex]
+          &\quad\quad(\\
+          &\quad\quad\quad\call{balanceUsuarioHastaBloque}{%
+                id\_usuario,\, cadena[i].id\_bl - 1,\,cadena
+              }
+              \;+\\
+          &\quad\quad\quad\call{balanceUsuarioEnTxsHasta}{%
+                id\_usuario,\,num\_tr,\,cadena[i].tr
+              }\\
+          &\quad\quad) \;\ge 0
+            \\[0.8ex]
+          &\quad)  
+          &)
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+
+
+    \begin{aux}{balanceUsuarioEnTxsHasta}{%
+      id\_usuario: \tint,\quad
+      num\_tr: \tint,\quad
+      tr: Transacciones
+    }{\tint}
+    %----------------------------------------------------------------------  
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &\bigl(\sum_{i=0}^{num\_tr}
+             \IfThenElseFi{tr[i].id\_ven = id\_usuario}{tr[i].mont}{0}
+           \bigr)\quad -\; \\[-0.3ex]
+          &\bigl(\sum_{i=0}^{num\_tr}
+             \IfThenElseFi{tr[i].id\_com = id\_usuario}{tr[i].mont}{0}
+           \bigr)
+        \end{alignedat}$%
+    }
+    \end{aux}
+    \medskip
+    \medskip
+
+    \begin{aux}{balanceUsuarioHastaBloque}{%
+      id\_usuario: \tint,\quad
+      hasta\_bloque: \tint,\quad
+      cadena: Cadena
+    }{\tint}
+    \noindent\makebox[\linewidth][l]{%
+        $\displaystyle
+        \sum_{j = 0}^{\lvert cadena\rvert - 1}
+          \left(
+            \begin{aligned}
+              &\quad\mathbf{if}\;cadena[j].id\_bl \le hasta\_bloque\\
+              &\quad\mathbf{then}\;\call{balanceUsuarioEnTxsHasta}{%
+                   id\_usuario,\;\lvert cadena[j].tr\rvert - 1,\;cadena[j].tr}\\
+              &\quad\mathbf{else}\;0\; \mathbf{fi}
+            \end{aligned}
+          \right)
+        $
+    }
+    \end{aux}
+    \medskip
+    \medskip
+
+
+    \begin{pred}{transaccionValida}{%
+        id\_bl: \tint,\quad
+        es\_creacion: \tbool,\quad
+        tr: Transaccion
+    }
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+            &(tr.id\_tr \ge 0)
+            \;\land\;(\,tr.id\_ven > 0\,)
+            \;\land\;(tr.id\_com \neq tr.id\_ven)
+            \;\land\;(tr.mont > 0)
+            \;\land\\
+            &(\\
+            &\quad(\;es\_creacion\;\implicaLuego
+             \;tr.id\_com = 0 \;\land\;tr.mont = 1)\;\land\\[0.8ex]
+            &\quad(\;\neg es\_creacion\;\implicaLuego\;tr.id\_com > 0)\\
+            &)
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+    \pagebreak
+
+
+
+    \begin{pred}{bloqueValido}{bl : Bloque, cadena: Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          % primera cláusula→L
+          & (bl.id\_bl \ge 0)\; \land \\
+          &(estaEnPrimerosTresmil(bl.id\_bl, cadena)\;\implicaLuego \vert bl.tr \vert \geq 1)\; \land \\
+          &(\lvert bl.tr\rvert \le 50)\;\land\\[0.8ex]
+          &(\forall\,i:\mathds{Z})\bigl(0 \le i < \lvert bl.tr\rvert\;\implicaLuego\\[-0.4ex]
+          &\quad
+             \call{transaccionValida}{%
+              bl.id\_bl,\; esTrDeCreacion(bl.tr[i].id\_tr, bl, cadena) ,\;bl.tr[i]}\\
+          &)\;\land\\[0.8ex]
+          &(\forall\,i:\mathds{Z})\bigl(0 \le i < \lvert bl.tr\rvert - 1\;\implicaLuego\\[-0.4ex]
+          &\quad bl.tr[i].id\_tr < bl.tr[i+1].id\_tr\\
+          &)\;
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+
+    \begin{pred}{esTrDeCreacion}{id\_tr: \tint, bl: Bloque, cadena: Cadena} 
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          estaEnPrimerosTresmil(bl.id\_bl, cadena) \land id\_tr = bl.tr[0].id\_tr
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+
+    \begin{pred}{estaEnPrimerosTresmil}{id\_bl: \tint, cadena: Cadena} 
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          (\exists & j:\tint) (0\leq j < \vert cadena \vert \yLuego \\
+          & esPrimerIdBloques(cadena[j].id\_bl, cadena) \land id\_bl < cadena[j].id\_bl + 3000)
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+
+    \begin{pred}{cadenaValida}{cadena : Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\forall\,i:\mathds{Z})(0 \le i < \lvert cadena\rvert
+             \;\implicaLuego
+          (
+             \call{bloqueValido}{cadena[i], cadena}
+          )\;\land\\
+          &(\forall\,i:\mathds{Z})(\\
+          &\quad( 0 \le i < \lvert cadena\rvert \yLuego \neg esUltimoIdBloques(cadena[i].id\_bl, cadena) )
+             \;\implicaLuego\\[-0.4ex]
+          &\quad\quad (\exists\,j:\mathds{Z})(0 \le j < \lvert cadena\rvert
+             \;\land_L\;
+             cadena[j].id\_bl = cadena[i].id\_bl + 1
+          )\\
+          &)\\
+        \end{alignedat}$%
+    }
+    \end{pred}
+
+    \begin{pred}{esUltimoIdBloques}{id\_bloque: \tint, cadena : Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\forall\,i:\mathds{Z})(0 \le i < \lvert cadena\rvert
+             \;\implicaLuego
+          ( cadena[i].id\_bl \le id\_bloque))
+        \end{alignedat}$%
+    }
+    \end{pred}
+
+    \medskip
+    \medskip
+
+    \begin{pred}{esIesimoIdBloques}{id\_bloque: \tint, i: \tint, cadena: Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\exists\,j:\mathds{Z})(0 \le j < \lvert cadena\rvert
+             \;\yLuego
+          esPrimerIdBloques(j) \land cadena[j].id\_bloque + i = id\_bloque)
+        \end{alignedat}$%
+    }
+    \end{pred}
+
+    \medskip
+    \medskip
+
+    \begin{pred}{esPrimerIdBloques}{id\_bloque: \tint, cadena : Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\forall\,i:\mathds{Z})(0 \le i < \lvert cadena\rvert
+             \;\implicaLuego
+          ( cadena[i].id\_bl \ge id\_bloque))
+        \end{alignedat}$%
+    }
+    \end{pred}
+
+    \medskip
+    \medskip
+
+    \begin{pred}{vendedoresDistintosEnCreacion}{cadena : Cadena}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+          &(\forall\,i:\mathds{Z})(0 \le i < 
+             (\IfThenElseFi{\lvert cadena\rvert \le 3000}
+                           {\lvert cadena\rvert}
+                           {3000}
+             )\;\implicaLuego\\[-0.4ex]
+          &\quad
+             (\forall\,j:\mathds{Z})(0 \le j < 
+               (\IfThenElseFi{\lvert cadena\rvert \le 3000}
+                             {\lvert cadena\rvert}
+                             {3000}
+               )\;\yLuego\; i \neq j
+               \;\implica\\[-0.4ex]
+          &\quad\quad
+               \call{head}{cadena[i].tr}.id\_ven
+               \neq
+               \call{head}{cadena[j].tr}.id\_ven\\
+          &\quad\;)\\[-0.4ex]
+          &\;)
+        \end{alignedat}$%
+    }
+    \end{pred}
+    \medskip
+    \medskip
+
+    \begin{aux}{sumaMontosTrs}{%
+      trs: Transacciones,
+      desde: \tint
+    }{\tint}
+    %----------------------------------------------------------------------  
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+        \sum_{n=desde}^{\vert trs \vert} trs[n].mont
+        \end{alignedat}$%
+    }
+    \end{aux}
+    \medskip
+    \medskip
+
+    \pagebreak
+
+    \begin{aux}{sumaMontosBloques}{%
+      cadena: Cadena
+    }{\tint}
+    \noindent\makebox[\linewidth][l]{%
+        $\displaystyle
+        \sum_{n = 0}^{\lvert cadena\rvert}
+          \left(
+            \begin{aligned}
+              &\quad\mathbf{if}\;estaEnPrimerosTresmil(cadena[i].id\_bl, cadena)\\
+              &\quad\mathbf{then}\;\call{sumaMontosTrs}{cadena[i].tr, 1}\\
+              &\quad\mathbf{else}\;\call{sumaMontosTrs}{cadena[i].tr, 0}\; \mathbf{fi}
+            \end{aligned}
+          \right)
+        $
+    }
+    \end{aux}
+    \medskip
+    \medskip
+
+    \begin{aux}{cantidadTrsCadena}{%
+      cadena: Cadena
+    }{\tint}
+    \noindent\makebox[\linewidth][l]{%
+        $\begin{alignedat}{1}
+         \sum_{n = 0}^{\lvert cadena\rvert}
+         \vert cadena[i].tr \vert -
+         \IfThenElseFi{estaEnPrimerosTresmil(cadena[i].id\_bloque, cadena)}{1}{0}
+        \end{alignedat}$
+    }
+    \end{aux}
+    \medskip
+    \medskip
+
+
+    \pagebreak
+
+
+\begin{proc}{nuevaBerretacoin}{}{Berretacoin}
+\requiere{True}
+\asegura{res.cadena = \langle  \rangle }
+\end{proc}
+
+\begin{proc}{maximosTenedores}{%
+  \In{berretacoin}{Berretacoin}
+}{seq $ \langle  \tint \rangle  $ }
+  %-------------------- Precondiciones --------------------
+  \requiere{ \call{cadenaValida}{berretacoin.cadena} }
+  \requiere{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(i > 0 \;\implicaLuego\\
+        &\quad
+           \call{balanceUsuarioPositivoEnCadena}{i,\,berretacoin.cadena}
+        &)
+      \end{alignedat}$%
+    }
+  }
+  %-------------------- Postcondiciones -------------------
+  \asegura{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(0 \leq  i < \vert res \vert \;\implicaLuego \\
+        & \quad ( \forall\,usuario:\mathds{Z}) (usuario > 0 \implicaLuego \\
+        & \quad \quad res[i] \geq \call{balanceUsuarioHastaBloque}{usuario,\, |berretacoin.cadena| - 1,\, berretacoin.cadena} \\
+        & \quad) \\
+        &)
+      \end{alignedat}$%
+    }
+  }
+\end{proc}
+
+\medskip
+\medskip
+\medskip
+\medskip
+
+\begin{proc}{montoMedio}{%
+  \In{berretacoin}{Berretacoin}
+}{\tint}
+  %-------------------- Precondiciones --------------------
+  \requiere{ \call{cadenaValida}{berretacoin.cadena} }
+  \requiere{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(i > 0 \;\implicaLuego\\
+        &\quad
+           \call{balanceUsuarioPositivoEnCadena}{i,\,berretacoin.cadena}
+        &)
+      \end{alignedat}$%
+    }
+  }
+  %-------------------- Postcondiciones -------------------
+  \asegura{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+      & res = sumaMontosBloques(berretacion.cadena) / cantidadTrsCadena(berretacion.cadena) 
+      \end{alignedat}$%
+    }
+  }
+\end{proc}
+
+\newpage 
+
+\begin{proc}{cotizacionAPesos}{%
+  \In{berretacoin}{Berretacoin},\,
+  \In{cotizaciones}{seq \( \langle \tint \rangle  \)}
+}{seq $ \langle  \tint \rangle  $ }
+  %-------------------- Precondiciones --------------------
+  \requiere{ \call{cadenaValida}{berretacoin.cadena} }
+  \requiere{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(i > 0 \;\implicaLuego\\
+        &\quad
+           \call{balanceUsuarioPositivoEnCadena}{i,\,berretacoin.cadena}
+        &)
+      \end{alignedat}$%
+    }
+  }
+  \requiere{\vert berretacoin.cadena \vert = \vert cotizaciones \vert}
+  \requiere{(\forall cotizacion \in cotizaciones)(cotizacion > 0)}
+  %-------------------- Postcondiciones -------------------
+  \asegura{
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(0 \leq  i < \vert cotizaciones \vert \;\implicaLuego \\
+        &\quad \quad (( \exists\,bloque \in berretacoin.cadena) (esIesimoIdBloque(bloque.id\_bl, i, berretacoin.cadena) \; \yLuego \\
+        &\quad \quad  res[i] = sumaMontosTrs(bloque.tr, 0) * cotizaciones[i]
+          )) \\
+        &)
+      \end{alignedat}$%
+    }
+  }
+\end{proc}
+
+\newpage 
+
+\begin{proc}{agregarBloque}{%
+  \Inout{berretacoin}{\texttt{Berretacoin}},\quad
+  \In{bloque}{Bloque}
+}{}
+  %-------------------- Precondiciones --------------------
+  \requiere{ berretacoin = B0 }
+  \requiere{ \call{cadenaValida}{berretacoin.cadena} }
+  \requiere{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &(\exists\,i:\mathds{Z})(0 \le i < \lvert berretacoin.cadena\rvert
+           \;\yLuego \;berretacoin.cadena[i].id\_bl + 1 = bloque.id\_bloque)
+      \end{alignedat}$%
+    }
+  }
+  \requiere{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(i > 0 \;\implicaLuego\\
+        &\quad
+           \call{balanceUsuarioPositivoEnCadena}{i,\,berretacoin.cadena\mathbin{++}bloque}
+        &)
+      \end{alignedat}$%
+    }
+  }
+  \requiere{ \call{bloqueValido}{bloque, berretacoin.cadena} }
+
+  %-------------------- Postcondiciones -------------------
+  \asegura{%
+    & (bloque \in berretacoin.cadena)
+    \;\land\;
+    ((\forall\,bl\in B0)(bl \in berretacoin.cadena))
+    \;\land \\
+    & (\vert berretacoin.cadena\vert =\vert B0 \vert + 1)
+  }
+  \asegura{ \call{cadenaValida}{berretacoin.cadena} }
+  \asegura{%
+    \noindent\makebox[\linewidth][l]{%
+      $\begin{alignedat}{1}
+        &( \forall\,i:\mathds{Z})(0 < i\;\implicaLuego\\
+        &\quad \call{balanceUsuarioPositivoEnCadena}{i,\,berretacoin.cadena}
+      \end{alignedat}$%
+    }
+  }
+\end{proc}
+
+
+
+
+\end{tad}
+
+\end{document}
