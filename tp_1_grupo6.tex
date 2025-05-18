@@ -244,7 +244,7 @@
   \asegura{%
     \noindent\makebox[\linewidth][l]{%
       $\begin{alignedat}{1}
-          ( \forall \, i : \mathds{Z})((\forall \, j : \mathds{Z})(i \not = j \land 0 \leq i < \vert res \vert \land 0 \leq j < \vert res \vert \implicaLuego res[i] \not = res[j]))
+          ( \forall \, i : \mathds{Z})(0 \leq i < \vert res \vert \implicaLuego (\forall \, j : \mathds{Z})( 0 \leq j < \vert res \vert \land i \not = j \implicaLuego res[i] \not = res[j]))
       \end{alignedat}$%
     }
   }
@@ -284,7 +284,7 @@
 }{seq $ \langle  \tint \rangle  $ }
   %-------------------- Precondiciones --------------------
   \requiere{\vert berretacoin.cadena \vert = \vert cotizaciones \vert}
-  \requiere{(\forall cotizacion \in cotizaciones)(cotizacion > 0)}
+  \requiere{(\forall cotizacion \in \tint)(cotizacion \in cotizaciones \implica cotizacion > 0)}
   %-------------------- Postcondiciones -------------------
   \asegura{
     \noindent\makebox[\linewidth][l]{%
@@ -315,7 +315,8 @@
       $\begin{alignedat}{1}
         &(\forall\,usuario:\mathds{Z})( \\
            & \quad \quad (( \forall\,i:\tint)(0\leq i < \vert bloque.trs \vert \implicaLuego \\ 
-           & \quad \quad \quad \Big(\, \call{balanceUsuario}{usuario, berretacoin.cadena}\, - \\
+           & \quad \quad \quad \Big(\, \call{balanceUsuario}{usuario, berretacoin.cadena}\, + \\
+           & \quad \quad \quad \quad \sum_{j=0}^{i}\IfThenElseFi{bloque.trs[j].id\_ven = usuario}{bloque.trs[j].monto}{0} \; - \\
            & \quad \quad \quad \quad \sum_{j=0}^{i}\IfThenElseFi{bloque.trs[j].id\_comp = usuario}{bloque.trs[j].monto}{0} \\
            & \quad \quad \quad \Big) \geq 0 \\
            & \quad \quad ) \\
